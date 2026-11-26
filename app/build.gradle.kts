@@ -15,6 +15,11 @@ fun secret(env: String, prop: String): String =
 android {
     namespace = "com.atlas.sonora"
     compileSdk = 35
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions { jvmTarget = "17" }
     defaultConfig {
         applicationId = "com.atlas.sonora"
         minSdk = 26
