@@ -22,7 +22,7 @@ Return ONLY valid JSON:
 Return 8 recommendations. No markdown fences.
 """
 
-/** Talks to Grok (xAI) and the Spotify Web API directly from the phone (keys come from BuildConfig). */
+/** Talks to Groq and the Spotify Web API directly from the phone (keys come from BuildConfig). */
 object AiClient {
     private var token: String? = null
     private var tokenExpiry = 0L
@@ -41,20 +41,21 @@ object AiClient {
         return text
     }
 
-    // Grok (xAI) chat completions. Tries the configured model first, then fallbacks if it is retired.
-    private fun askGrok(prompt: String): String {
-        if (BuildConfig.XAI_API_KEY.isBlank()) throw IllegalStateException("xAI key is missing in this build")
-        val models = listOf(BuildConfig.XAI_MODEL, "grok-4-1-fast-non-reasoning", "grok-4.20-0309-non-reasoning", "grok-3").distinct()
+    // Groq chat completions (OpenAI-compatible). Tries fallback models if one has been retired.
+    private fun askGroq(prompt: String): String {
+        if (BuildConfig.GROQ_API_KEY.isBlank()) throw IllegalStateException("Groq key is missing in this build")
+        val models = listOf(BuildConfig.GROQ_MODEL, "openai/gpt-oss-120b", "openai/gpt-oss-20b").distinct()
         var last: Exception? = null
         for (model in models) {
-            val payload = JSONObject().put("model", model).put("temperature", 0.85)
+            val body = JSONObject().put("model", model).put("temperature", 0.85)
                 .put("messages", JSONArray()
                     .put(JSONObject().put("role", "system").put("content", SYSTEM_PROMPT))
                     .put(JSONObject().put("role", "user").put("content", prompt)))
-                .toString()
+            if (model.startsWith("openai/gpt-oss")) body.put("reasoning_effort", "low")  // keep replies fast
             try {
-                val res = http("https://api.x.ai/v1/chat/completions", "POST",
-                    mapOf("Content-Type" to "application/json", "Authorization" to "Bearer ${BuildConfig.XAI_API_KEY}"), payload)
+                val res = http("https://api.groq.com/openai/v1/chat/completions", "POST",
+                    mapOf("Content-Type" to "application/json", "Authorization" to "Bearer ${BuildConfig.GROQ_API_KEY}"),
+                    body.toString())
                 return JSONObject(res).getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content")
             } catch (e: IllegalStateException) {
                 last = e
@@ -63,7 +64,7 @@ object AiClient {
                 if (!modelProblem) throw e
             }
         }
-        throw last ?: IllegalStateException("No Grok model available")
+        throw last ?: IllegalStateException("No Groq model available")
     }
 
     private fun spotifyToken(): String? {
@@ -103,7 +104,7 @@ object AiClient {
                 "Liked songs: ${liked.takeLast(60)}\nDisliked songs: ${disliked.takeLast(60)}\n" +
                 "Already suggested recently (do not repeat): ${shown.takeLast(40)}\n" +
                 "Create a varied, high-quality next-listening queue."
-            val raw = askGrok(prompt)
+            val raw = askGroq(prompt)
             val start = raw.indexOf('{'); val end = raw.lastIndexOf('}')
             if (start < 0 || end < start) throw IllegalStateException("AI did not return JSON")
             val arr = JSONObject(raw.substring(start, end + 1)).optJSONArray("recommendations") ?: JSONArray()

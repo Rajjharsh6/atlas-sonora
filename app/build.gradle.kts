@@ -28,8 +28,8 @@ android {
         versionName = "3.0.0"
         buildConfigField("String", "SPOTIFY_CLIENT_ID", "\"${secret("SPOTIFY_CLIENT_ID", "spotifyClientId")}\"")
         buildConfigField("String", "SPOTIFY_CLIENT_SECRET", "\"${secret("SPOTIFY_CLIENT_SECRET", "spotifyClientSecret")}\"")
-        buildConfigField("String", "XAI_API_KEY", "\"${secret("XAI_API_KEY", "xaiApiKey")}\"")
-        buildConfigField("String", "XAI_MODEL", "\"${secret("XAI_MODEL", "xaiModel").ifBlank { "grok-4-1-fast-non-reasoning" }}\"")
+        buildConfigField("String", "GROQ_API_KEY", "\"${secret("GROQ_API_KEY", "groqApiKey")}\"")
+        buildConfigField("String", "GROQ_MODEL", "\"${secret("GROQ_MODEL", "groqModel").ifBlank { "openai/gpt-oss-120b" }}\"")
     }
     // Fixed debug key so the SHA-1 registered in the Spotify dashboard stays the same on every CI build
     signingConfigs {

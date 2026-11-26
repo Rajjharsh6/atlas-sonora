@@ -86,7 +86,7 @@ class SonoraViewModel(app: Application) : AndroidViewModel(app) {
     // ---- AI ----
     fun recommend() {
         if (busy) return
-        if (BuildConfig.XAI_API_KEY.isBlank()) { message = "Grok key missing. Add the XAI_API_KEY secret and rebuild."; return }
+        if (BuildConfig.GROQ_API_KEY.isBlank()) { message = "Groq key missing. Add the GROQ_API_KEY secret and rebuild."; return }
         busy = true
         message = "Finding music that fits your taste…"
         val slow = viewModelScope.launch {
