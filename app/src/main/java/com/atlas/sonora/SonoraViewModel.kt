@@ -86,7 +86,7 @@ class SonoraViewModel(app: Application) : AndroidViewModel(app) {
     // ---- AI ----
     fun recommend() {
         if (busy) return
-        if (BuildConfig.GEMINI_API_KEY.isBlank()) { message = "Gemini key missing. Add the GEMINI_API_KEY secret and rebuild."; return }
+        if (BuildConfig.XAI_API_KEY.isBlank()) { message = "Grok key missing. Add the XAI_API_KEY secret and rebuild."; return }
         busy = true
         message = "Finding music that fits your taste…"
         val slow = viewModelScope.launch {

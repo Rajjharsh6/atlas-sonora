@@ -15,11 +15,6 @@ fun secret(env: String, prop: String): String =
 android {
     namespace = "com.atlas.sonora"
     compileSdk = 35
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-    kotlinOptions { jvmTarget = "17" }
     defaultConfig {
         applicationId = "com.atlas.sonora"
         minSdk = 26
@@ -29,7 +24,7 @@ android {
         buildConfigField("String", "SPOTIFY_CLIENT_ID", "\"${secret("SPOTIFY_CLIENT_ID", "spotifyClientId")}\"")
         buildConfigField("String", "SPOTIFY_CLIENT_SECRET", "\"${secret("SPOTIFY_CLIENT_SECRET", "spotifyClientSecret")}\"")
         buildConfigField("String", "GEMINI_API_KEY", "\"${secret("GEMINI_API_KEY", "geminiApiKey")}\"")
-        buildConfigField("String", "GEMINI_MODEL", "\"${secret("GEMINI_MODEL", "geminiModel").ifBlank { "gemini-3.5-flash" }}\"")
+        buildConfigField("String", "GEMINI_MODEL", "\"${secret("GEMINI_MODEL", "geminiModel").ifBlank { "gemini-2.5-flash" }}\"")
     }
     // Fixed debug key so the SHA-1 registered in the Spotify dashboard stays the same on every CI build
     signingConfigs {
@@ -40,6 +35,11 @@ android {
             keyPassword = "android"
         }
     }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions { jvmTarget = "17" }
     buildFeatures { compose = true; buildConfig = true }
 }
 dependencies {

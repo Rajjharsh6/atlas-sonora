@@ -4,6 +4,7 @@
         <package android:name="com.spotify.music" />
     </queries>
     <application android:allowBackup="true" android:usesCleartextTraffic="false"
+        android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round"
         android:label="ATLAS SONORA" android:theme="@style/Theme.Sonora"
         android:supportsRtl="true">
         <activity android:name=".MainActivity" android:exported="true"

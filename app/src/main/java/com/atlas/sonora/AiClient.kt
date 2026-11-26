@@ -22,7 +22,7 @@ Return ONLY valid JSON:
 Return 8 recommendations. No markdown fences.
 """
 
-/** Talks to Gemini and the Spotify Web API directly from the phone (keys come from BuildConfig). */
+/** Talks to Grok (xAI) and the Spotify Web API directly from the phone (keys come from BuildConfig). */
 object AiClient {
     private var token: String? = null
     private var tokenExpiry = 0L
@@ -41,20 +41,29 @@ object AiClient {
         return text
     }
 
-    private fun askGemini(prompt: String): String {
-        if (BuildConfig.GEMINI_API_KEY.isBlank()) throw IllegalStateException("Gemini key is missing in this build")
-        val config = JSONObject().put("temperature", 0.85).put("responseMimeType", "application/json")
-        if ("flash" in BuildConfig.GEMINI_MODEL) config.put("thinkingConfig", JSONObject().put("thinkingBudget", 0))
-        fun textPart(t: String) = JSONArray().put(JSONObject().put("text", t))
-        val payload = JSONObject()
-            .put("system_instruction", JSONObject().put("parts", textPart(SYSTEM_PROMPT)))
-            .put("contents", JSONArray().put(JSONObject().put("role", "user").put("parts", textPart(prompt))))
-            .put("generationConfig", config)
-        val res = http(
-            "https://generativelanguage.googleapis.com/v1beta/models/${BuildConfig.GEMINI_MODEL}:generateContent", "POST",
-            mapOf("Content-Type" to "application/json", "x-goog-api-key" to BuildConfig.GEMINI_API_KEY), payload.toString())
-        return JSONObject(res).getJSONArray("candidates").getJSONObject(0)
-            .getJSONObject("content").getJSONArray("parts").getJSONObject(0).getString("text")
+    // Grok (xAI) chat completions. Tries the configured model first, then fallbacks if it is retired.
+    private fun askGrok(prompt: String): String {
+        if (BuildConfig.XAI_API_KEY.isBlank()) throw IllegalStateException("xAI key is missing in this build")
+        val models = listOf(BuildConfig.XAI_MODEL, "grok-4-1-fast-non-reasoning", "grok-4.20-0309-non-reasoning", "grok-3").distinct()
+        var last: Exception? = null
+        for (model in models) {
+            val payload = JSONObject().put("model", model).put("temperature", 0.85)
+                .put("messages", JSONArray()
+                    .put(JSONObject().put("role", "system").put("content", SYSTEM_PROMPT))
+                    .put(JSONObject().put("role", "user").put("content", prompt)))
+                .toString()
+            try {
+                val res = http("https://api.x.ai/v1/chat/completions", "POST",
+                    mapOf("Content-Type" to "application/json", "Authorization" to "Bearer ${BuildConfig.XAI_API_KEY}"), payload)
+                return JSONObject(res).getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content")
+            } catch (e: IllegalStateException) {
+                last = e
+                val m = e.message.orEmpty()
+                val modelProblem = m.startsWith("HTTP 404") || (m.startsWith("HTTP 400") && m.contains("model", ignoreCase = true))
+                if (!modelProblem) throw e
+            }
+        }
+        throw last ?: IllegalStateException("No Grok model available")
     }
 
     private fun spotifyToken(): String? {
@@ -94,7 +103,7 @@ object AiClient {
                 "Liked songs: ${liked.takeLast(60)}\nDisliked songs: ${disliked.takeLast(60)}\n" +
                 "Already suggested recently (do not repeat): ${shown.takeLast(40)}\n" +
                 "Create a varied, high-quality next-listening queue."
-            val raw = askGemini(prompt)
+            val raw = askGrok(prompt)
             val start = raw.indexOf('{'); val end = raw.lastIndexOf('}')
             if (start < 0 || end < start) throw IllegalStateException("AI did not return JSON")
             val arr = JSONObject(raw.substring(start, end + 1)).optJSONArray("recommendations") ?: JSONArray()

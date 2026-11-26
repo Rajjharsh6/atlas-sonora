@@ -4,7 +4,7 @@ Personal Android music-discovery app. GitHub Actions builds the APK; no Android 
 
 ## Included
 - Kotlin + Jetpack Compose Android app.
-- AI music curator powered by Gemini, called directly from the phone (no server).
+- AI music curator powered by Grok (xAI), called directly from the phone (no server).
 - Mood selection and custom natural-language music requests.
 - Local liked/disliked taste memory, sent with future recommendations.
 - Playback through the Spotify app (App Remote SDK, Premium).
@@ -22,11 +22,11 @@ Tapping a pick plays it through the **Spotify App Remote SDK**, which controls t
 
 ## API keys (no server needed)
 Keys are baked into your own APK at build time and never committed. In GitHub: **Settings > Secrets and variables > Actions > New repository secret**, add:
-- `GEMINI_API_KEY` (from https://aistudio.google.com/apikey)
+- `XAI_API_KEY` (from https://console.x.ai; the account needs credits)
 - `SPOTIFY_CLIENT_ID`
 - `SPOTIFY_CLIENT_SECRET`
 
-Optional: `GEMINI_MODEL` as an Actions variable-style secret (default `gemini-2.5-flash`). Building locally instead? Put `GEMINI_API_KEY=...`, `SPOTIFY_CLIENT_ID=...`, `SPOTIFY_CLIENT_SECRET=...` in `local.properties` using the names `geminiApiKey`, `spotifyClientId`, `spotifyClientSecret`.
+Optional: set a repository **variable** (not secret) named `XAI_MODEL` to pick a model (default `grok-4-1-fast-non-reasoning`; the app falls back to others automatically). Building locally instead? Put `XAI_API_KEY=...`, `SPOTIFY_CLIENT_ID=...`, `SPOTIFY_CLIENT_SECRET=...` in `local.properties` using the names `xaiApiKey`, `spotifyClientId`, `spotifyClientSecret`.
 Keep the repo private and don't share the APK, since the keys live inside it.
 
 ## Build APK using GitHub only
